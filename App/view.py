@@ -20,6 +20,8 @@
  * along withthis program.  If not, see <http://www.gnu.org/licenses/>.
  """
 
+from ast import Pass
+from re import A
 import sys
 import config
 import threading
@@ -68,24 +70,13 @@ def printMenu():
 
 
 def optionTwo(cont):
-    print("\nCargando información de transporte de singapur ....")
-    controller.loadServices(cont, servicefile)
-    numedges = controller.totalConnections(cont)
-    numvertex = controller.totalStops(cont)
-    print('Numero de vertices: ' + str(numvertex))
-    print('Numero de arcos: ' + str(numedges))
-    print('El limite de recursion actual: ' + str(sys.getrecursionlimit()))
-
+    pass
 
 def optionThree(cont):
-    print('El número de componentes conectados es: ' +
-          str(controller.connectedComponents(cont)))
-
+    pass
 
 def optionFour(cont, initialStation):
-    print('Calculando costo de caminos')
-    controller.minimumCostPaths(cont, initialStation)
-    print("FIN!")
+    pass
 
 
 def optionFive(cont, initialStation, searchMethod):
@@ -93,41 +84,21 @@ def optionFive(cont, initialStation, searchMethod):
 
 
 def optionSix(cont, destStation):
-    haspath = controller.hasPath(cont, destStation)
-    print('Hay camino entre la estación base : ' +
-          'y la estación: ' + destStation + ': ')
-    print(haspath)
+    pass
 
 
 def optionSeven(cont, destStation):
-    path = controller.minimumCostPath(cont, destStation)
-    if path is not None:
-        pathlen = stack.size(path)
-        print('El camino es de longitud: ' + str(pathlen))
-        while (not stack.isEmpty(path)):
-            stop = stack.pop(path)
-            print(stop)
-    else:
-        print('No hay camino')
-
+    pass
 
 def optionEight(cont):
-    maxvert, maxdeg = controller.servedRoutes(cont)
-    print('Estación: ' + maxvert + '  Total rutas servidas: '
-          + str(maxdeg))
+    pass
 
 
 def optionNine(cont, destStation, searchMethod):
-    haspath = None
-    print(haspath)
-
+    pass
 
 def optionTen(cont, destStation, searchMethod):
-    path = None
-    if path is not None:
-        pass
-    else:
-        print('No hay camino')
+    pass
 
 
 """
