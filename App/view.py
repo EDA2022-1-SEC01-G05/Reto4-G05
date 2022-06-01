@@ -56,15 +56,13 @@ def printMenu():
     print("*******************************************")
     print("Bienvenido")
     print("1- Inicializar Analizador")
-    print("2- Cargar información de buses de singapur")
-    print("3- Calcular componentes conectados")
-    print("4- Establecer estación base:")
-    print("5- Establecer metodo de busqueda y estación base:")
-    print("6- Hay camino entre estacion base y estación: ")
-    print("7- Ruta de costo mínimo desde la estación base y estación: ")
-    print("8- Estación que sirve a mas rutas: ")
-    print("9- Existe un camino de busqueda entre base y estación: ")
-    print("10- Ruta de busqueda entre la estación base y estación: ")
+    print("2- Comprar bicicletas para las estaciones con más viajes")
+    print("3- Planear paseos turísticos por la ciudad")
+    print("4- Reconocer los comopnentes fuertemente conectados del sistema")
+    print("5- Planear una ruta rápida")
+    print("6- Reportar rutas en un rango de fechas para los usuarios anuales")
+    print("7- Planear el mantenimiento preventivo de bicicletas")
+    print("8- La estación más frecuentada por visitantes")
     print("0- Salir")
     print("*******************************************")
 
@@ -72,32 +70,25 @@ def printMenu():
 def optionTwo(cont):
     pass
 
-def optionThree(cont):
+def optionThree(cont, nombre, dispo_usuario, minru, maxru):
     pass
 
-def optionFour(cont, initialStation):
-    pass
-
-
-def optionFive(cont, initialStation, searchMethod):
+def optionFour(cont):
     pass
 
 
-def optionSix(cont, destStation):
+def optionFive(cont, nombreO, nombreD):
     pass
 
 
-def optionSeven(cont, destStation):
-    pass
-
-def optionEight(cont):
+def optionSix(cont, fechaI, fechaF):
     pass
 
 
-def optionNine(cont, destStation, searchMethod):
+def optionSeven(cont, bikeID):
     pass
 
-def optionTen(cont, destStation, searchMethod):
+def optionEight(cont, fyhI, fyhF):
     pass
 
 
