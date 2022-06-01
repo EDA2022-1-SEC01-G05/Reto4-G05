@@ -20,11 +20,12 @@
  * along withthis program.  If not, see <http://www.gnu.org/licenses/>.
  """
 
-import config as cf
 import sys
-import controller
-from DISClib.ADT import list as lt
-assert cf
+import config
+import threading
+from App import controller
+from DISClib.ADT import stack
+assert config
 
 
 """
@@ -34,25 +35,153 @@ se hace la solicitud al controlador para ejecutar la
 operación solicitada
 """
 
-def printMenu():
-    print("Bienvenido")
-    print("1- Cargar información en el catálogo")
-    print("2- ")
+# ___________________________________________________
+#  Variables
+# ___________________________________________________
 
-catalog = None
+
+servicefile = 'Bikeshare-ridership-2021-utf8-small.csv'
+initialStation = None
+searchMethod = None
+
+# ___________________________________________________
+#  Menu principal
+# ___________________________________________________
+
+
+def printMenu():
+    print("\n")
+    print("*******************************************")
+    print("Bienvenido")
+    print("1- Inicializar Analizador")
+    print("2- Cargar información de buses de singapur")
+    print("3- Calcular componentes conectados")
+    print("4- Establecer estación base:")
+    print("5- Establecer metodo de busqueda y estación base:")
+    print("6- Hay camino entre estacion base y estación: ")
+    print("7- Ruta de costo mínimo desde la estación base y estación: ")
+    print("8- Estación que sirve a mas rutas: ")
+    print("9- Existe un camino de busqueda entre base y estación: ")
+    print("10- Ruta de busqueda entre la estación base y estación: ")
+    print("0- Salir")
+    print("*******************************************")
+
+
+def optionTwo(cont):
+    print("\nCargando información de transporte de singapur ....")
+    controller.loadServices(cont, servicefile)
+    numedges = controller.totalConnections(cont)
+    numvertex = controller.totalStops(cont)
+    print('Numero de vertices: ' + str(numvertex))
+    print('Numero de arcos: ' + str(numedges))
+    print('El limite de recursion actual: ' + str(sys.getrecursionlimit()))
+
+
+def optionThree(cont):
+    print('El número de componentes conectados es: ' +
+          str(controller.connectedComponents(cont)))
+
+
+def optionFour(cont, initialStation):
+    print('Calculando costo de caminos')
+    controller.minimumCostPaths(cont, initialStation)
+    print("FIN!")
+
+
+def optionFive(cont, initialStation, searchMethod):
+    pass
+
+
+def optionSix(cont, destStation):
+    haspath = controller.hasPath(cont, destStation)
+    print('Hay camino entre la estación base : ' +
+          'y la estación: ' + destStation + ': ')
+    print(haspath)
+
+
+def optionSeven(cont, destStation):
+    path = controller.minimumCostPath(cont, destStation)
+    if path is not None:
+        pathlen = stack.size(path)
+        print('El camino es de longitud: ' + str(pathlen))
+        while (not stack.isEmpty(path)):
+            stop = stack.pop(path)
+            print(stop)
+    else:
+        print('No hay camino')
+
+
+def optionEight(cont):
+    maxvert, maxdeg = controller.servedRoutes(cont)
+    print('Estación: ' + maxvert + '  Total rutas servidas: '
+          + str(maxdeg))
+
+
+def optionNine(cont, destStation, searchMethod):
+    haspath = None
+    print(haspath)
+
+
+def optionTen(cont, destStation, searchMethod):
+    path = None
+    if path is not None:
+        pass
+    else:
+        print('No hay camino')
+
 
 """
 Menu principal
 """
-while True:
-    printMenu()
-    inputs = input('Seleccione una opción para continuar\n')
-    if int(inputs[0]) == 1:
-        print("Cargando información de los archivos ....")
 
-    elif int(inputs[0]) == 2:
-        pass
 
-    else:
-        sys.exit(0)
-sys.exit(0)
+def thread_cycle():
+    cont = None
+    while True:
+        printMenu()
+        inputs = input('Seleccione una opción para continuar\n>')
+        if int(inputs) == 1:
+            print("\nInicializando....")
+            # cont es el controlador que se usará de acá en adelante
+            cont = controller.init()
+            controller.loadServices(cont, servicefile)
+        elif int(inputs) == 2:
+            optionTwo(cont)
+
+        elif int(inputs) == 3:
+            optionThree(cont)
+
+        elif int(inputs) == 4:
+            msg = "Estación Base: BusStopCode-ServiceNo (Ej: 75009-10): "
+            initialStation = input(msg)
+            optionFour(cont, initialStation)
+
+        elif int(inputs) == 5:
+            pass
+
+        elif int(inputs) == 6:
+            destStation = input("Estación destino (Ej: 15151-10): ")
+            optionSix(cont, destStation)
+
+        elif int(inputs) == 7:
+            destStation = input("Estación destino (Ej: 15151-10): ")
+            optionSeven(cont, destStation)
+
+        elif int(inputs) == 8:
+            optionEight(cont)
+
+        elif int(inputs) == 9:
+            pass
+
+        elif int(inputs) == 10:
+            pass
+        else:
+            break
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    threading.stack_size(67108864)  # 64MB stack
+    sys.setrecursionlimit(2 ** 20)
+    thread = threading.Thread(target=thread_cycle)
+    thread.start()
