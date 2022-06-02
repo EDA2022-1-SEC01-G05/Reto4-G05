@@ -26,19 +26,16 @@
 
 
 from datetime import datetime
+from msilib.schema import Component
 import random
 import time
 
-
+from DISClib.Algorithms.Graphs import scc
 from DISClib.Algorithms.Graphs import dijsktra as djk
 import config as cf
-import math
-from DISClib.ADT import list as lt
 from DISClib.ADT import orderedmap as om
 from DISClib.ADT import graph as gr
-from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
-from DISClib.Algorithms.Sorting import shellsort as sa
 assert cf
 
 """
@@ -107,6 +104,8 @@ class Analyzer():
     bikes = {}
     #[{id: Trip}] ordered_by_date
     trips = []
+    components = None
+
     mst = om.newMap(omaptype='RBT',comparefunction=comparTreeMap)
     @staticmethod
     def genId():
@@ -153,7 +152,7 @@ class Analyzer():
         # print("["+start_station.name+"]---"+str(edge)+"---["+end_station.name+"]")
     def order(self):
         def get_date(element):
-            return element.get('key')
+            return element['key']
         self.trips.sort(key=get_date)
         self.__ordered = True 
 
@@ -187,43 +186,6 @@ class Station:
         self.InTrips = InTrips
         self.OutTrips = OutTrips
 
-# Funciones para reccorridos
-
-def binary_search(arr, low, high, x):
-    # Check base case
-    if high >= low:
-        mid = (high+low) // 2
-        # If element is present at the middle itself
-        if arr[mid] == x:
-            return mid
-        # If element is smaller than mid, then it can only
-        # be present in left subarray
-        elif arr[mid] > x:
-            return binary_search(arr, low, (mid-1), x)
-        # Else the element can only be present in right subarray
-        else:
-            return binary_search(arr, (mid+1), high, x)
-    else:
-        # Element is not present in the array
-        return -1
- 
-
-
-def range_search(arr, l_bound, u_bound):
-    def get_low_position(l_bound, mid):
-        if l_bound > mid:
-            for i in range(l_bound,0):
-                pass
-        else:
-            get_low_position(l_bound, mid//2)
-
-    size = len(arr)
-    if(l_bound > u_bound):
-        l_bound, u_bound = u_bound, l_bound
-    if (u_bound < arr[0] or l_bound > arr[size-1]):
-        return False
-
-
 # Funciones para creacion de datos
 
 # Funciones de consulta
@@ -251,6 +213,56 @@ def superStation(analyzer: Analyzer,station_id, fyhI, fyhF):
     tp = Analyzer.trips 
     pass
 
+def optionSix(analyzer: Analyzer, fechaI, fechaF):
+    inicio = datetime.strptime(fechaI, '%m/%d/%Y')
+    final = datetime.strptime(fechaF, '%m/%d/%Y')
+    if inicio > final : inicio, final = final,inicio
+    start = end = None
+    origin = destiny = 'None'
+    duration = 0
+    hourIn = hourOut = {'hour': None, 'value': 0 }
+    OutStations = InStations = { 'None': 0}
+    hoursIn = {0: 0,1: 0,2: 0,3: 0,4: 0,5: 0,6: 0,7: 0,8: 0,9: 0,10: 0,11: 0,12: 0,13: 0,14: 0,15: 0,16: 0,17: 0,18: 0,19: 0,20: 0,21: 0,22: 0,23: 0}
+    hoursOut = {0: 0,1: 0,2: 0,3: 0,4: 0,5: 0,6: 0,7: 0,8: 0,9: 0,10: 0,11: 0,12: 0,13: 0,14: 0,15: 0,16: 0,17: 0,18: 0,19: 0,20: 0,21: 0,22: 0,23: 0}
+    t : Trip
+    for i,r in enumerate(analyzer.trips):
+        t = r['value']
+        if (t.start_time > inicio and start == None):
+            start = i
+        if  (t.end_time > final and end == None):
+            end = i-1 if i >= 0 else 0
+        if (start != None and end != None):
+            break
+    for i in range(start,end+1):
+        t = analyzer.trips[i]['value']
+        duration += t.duration
+        if not( t.start_station_name in OutStations.keys()):
+            OutStations[t.start_station_name] = 1
+        else:
+            OutStations[t.start_station_name] += 1
+        if not( t.end_station_name in InStations.keys()):
+            InStations[t.end_station_name] = 1
+        else:
+            InStations[t.end_station_name] += 1
+        hoursIn[t.end_time.hour] += 1
+        hoursOut[t.start_time.hour] += 1
+    for i in range(0,24):
+        hourIn = {'hour': i, 'value': hoursIn[i]  } if  hourIn['value'] < hoursIn[i]  else hourIn
+        hourOut = {'hour': i, 'value': hoursOut[i]  } if  hourOut['value'] < hoursOut[i]  else hourOut
+    for i in InStations.keys():
+        origin = i if  InStations[i] > InStations[origin]  else origin
+    for i in OutStations.keys():
+        destiny = i if  OutStations[i] > OutStations[destiny]  else destiny
+    return {'total': end-start,'duration': duration, 'OutStation': origin, 'InStation': destiny, 'hourIn': hourIn['hour'], 'hourOut': hourOut['hour']  }
+
+def connectedComponents(analyzer: Analyzer):
+    """
+    Calcula los componentes conectados del grafo
+    Se utiliza el algoritmo de Kosaraju
+    """
+    analyzer.components = scc.KosarajuSCC(analyzer.grafo)
+    return scc.connectedComponents(analyzer.components), analyzer.components
+
 def shortestPath(analyzer:Analyzer , origin_station_name, destination_station_name):
     start_station, end_station = None, None
     for i in analyzer.stations.values():
@@ -261,7 +273,6 @@ def shortestPath(analyzer:Analyzer , origin_station_name, destination_station_na
     if(start_station == None or end_station == None):
         return None
     djkgraph = djk.Dijkstra(analyzer.grafo,start_station.id)
-    # print(djkgraph)
     path = djk.pathTo(djkgraph,end_station.id)
     return path
 

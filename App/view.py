@@ -24,6 +24,7 @@ from ast import Pass
 from itertools import count
 from re import A
 import sys
+from typing import final
 import config
 import threading
 from App import controller
@@ -77,7 +78,9 @@ def optionThree(cont, nombre, dispo_usuario, minru, maxru):
     pass
 
 def optionFour(cont):
-    pass
+    number, components = controller.connectedComponents(cont)
+    print('El número de componentes conectados es: ' + str(number))
+    return components
 
 
 def optionFive(cont, nombreO, nombreD):
@@ -92,11 +95,12 @@ def optionFive(cont, nombreO, nombreD):
         print('No hay camino')
 
 
-def optionSix(cont, fechaI, fechaF):
-    pass
+def optionSix(analyzer, fechaI, fechaF):
+    return controller.optionSix(analyzer, fechaI, fechaF)
 
 
 def optionSeven(cont, bikeID):
+
     pass
 
 def optionEight(cont,estacion, fyhI, fyhF):
@@ -126,9 +130,7 @@ def thread_cycle():
             optionThree(cont)
 
         elif int(inputs) == 4:
-            msg = "Estación Base: BusStopCode-ServiceNo (Ej: 75009-10): "
-            initialStation = input(msg)
-            optionFour(cont, initialStation)
+            optionFour(cont)
 
         elif int(inputs) == 5:
             orgStation = input("Estación origen (Ej: Fort York  Blvd / Capreol Ct): ")
@@ -136,8 +138,9 @@ def thread_cycle():
             optionFive(cont, orgStation, destStation)
             
         elif int(inputs) == 6:
-            destStation = input("Estación destino (Ej: 15151-10): ")
-            optionSix(cont, destStation)
+            inicio = input("Fecha de inicio (Ej: 02/24/2021): ")
+            final = input("Fecha de final (Ej: 07/09/2021): ")
+            print(optionSix(cont, inicio,final))
 
         elif int(inputs) == 7:
             destStation = input("Estación destino (Ej: 15151-10): ")

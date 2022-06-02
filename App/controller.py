@@ -67,9 +67,11 @@ def StationNeedsBikes(analyzer: Analyzer):
 def optionThree(analyzer, nombre, dispo_usuario, minru, maxru):
     return model.optionThree(analyzer, nombre, dispo_usuario, minru, maxru)
 
-def optionFour(analyzer):
-    return model.optionFour(analyzer)
-
+def connectedComponents(analyzer):
+    """
+    Numero de componentes fuertemente conectados
+    """
+    return model.connectedComponents(analyzer)
 
 def optionFive(analyzer, nombreO, nombreD):
     return model.shortestPath(analyzer, nombreO, nombreD)
