@@ -20,6 +20,7 @@
  * along withthis program.  If not, see <http://www.gnu.org/licenses/>.
  """
 
+from App.model import Analyzer
 import config as cf
 import model
 import csv
@@ -60,3 +61,26 @@ def loadServices(analyzer: model.Analyzer, servicesfile):
 # Funciones de ordenamiento
 
 # Funciones de consulta sobre el catálogo
+def StationNeedsBikes(analyzer: Analyzer):
+    return model.StationNeedsBikes(analyzer)
+
+def optionThree(analyzer, nombre, dispo_usuario, minru, maxru):
+    return model.optionThree(analyzer, nombre, dispo_usuario, minru, maxru)
+
+def optionFour(analyzer):
+    return model.optionFour(analyzer)
+
+
+def optionFive(analyzer, nombreO, nombreD):
+    return model.shortestPath(analyzer, nombreO, nombreD)
+
+
+def optionSix(analyzer, fechaI, fechaF):
+    return model.optionSix(analyzer, fechaI, fechaF)
+
+
+def optionSeven(analyzer, bikeID):
+    return model.optionSeven(analyzer, bikeID)
+
+def optionEight(analyzer,estacion, fyhI, fyhF):
+    return model.optionEight(analyzer,estacion, fyhI, fyhF)

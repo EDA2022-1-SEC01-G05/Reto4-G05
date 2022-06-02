@@ -26,12 +26,11 @@
 
 
 from datetime import datetime
-from multiprocessing import set_forkserver_preload
 import random
 import time
-from xmlrpc.client import Boolean
 
-from pandas import set_eng_float_format
+
+from DISClib.Algorithms.Graphs import dijsktra as djk
 import config as cf
 import math
 from DISClib.ADT import list as lt
@@ -131,17 +130,19 @@ class Analyzer():
             bike.seconds += trip.duration
         # Creates Vertex (start and end)
         if(not(gr.containsVertex(self.grafo,trip.start_station_id)) and not(trip.start_station_id in self.stations)):
-            start_station = Station(trip.start_station_id, trip.start_station_name)
+            start_station = Station(trip.start_station_id, trip.start_station_name, 0,1)
             self.stations[start_station.id] = start_station
             gr.insertVertex(self.grafo,start_station.id)
         else:
             start_station = self.stations[trip.start_station_id]
+            start_station.OutTrips += 1 
         if(not(gr.containsVertex(self.grafo,trip.end_station_id)) and not(trip.end_station_id in self.stations)):
-            end_station = Station(trip.end_station_id, trip.end_station_name)
+            end_station = Station(trip.end_station_id, trip.end_station_name, 1,0)
             self.stations[end_station.id] = end_station
             gr.insertVertex(self.grafo,end_station.id)
         else:
             end_station = self.stations[trip.end_station_id]
+            end_station.InTrips += 1 
         #Creates edges
         edge = gr.getEdge(self.grafo, start_station.id, end_station.id)
         if(edge == None ):
@@ -149,7 +150,7 @@ class Analyzer():
             gr.addEdge(self.grafo,start_station.id, end_station.id, trip.duration)
             edge = gr.getEdge(self.grafo, start_station.id, end_station.id)
 
-        # print("["+start_station.name+"]---"+str(edge.weight)+"---["+end_station.name+"]")
+        # print("["+start_station.name+"]---"+str(edge)+"---["+end_station.name+"]")
     def order(self):
         def get_date(element):
             return element.get('key')
@@ -158,20 +159,20 @@ class Analyzer():
 
  
 class Trip:
-    def __init__(self,id,duration,start_time,end_time,start_station_id,start_station_name,end_station_id,end_station_name,bike_id,user_type) :
+    def __init__(self,id,duration: str,start_time: str,end_time: str,start_station_id: str,start_station_name: str,end_station_id: str,end_station_name: str,bike_id: str,user_type: str) :
         self.id = id
         self.duration = int(duration)
         self.start_time = datetime.strptime(start_time, '%m/%d/%Y %H:%M')
         self.end_time = datetime.strptime(end_time, '%m/%d/%Y %H:%M')
-        self.start_station_id = start_station_id
+        self.start_station_id = str(int(float(start_station_id))) if start_station_id else ''
         self.start_station_name = start_station_name
-        self.end_station_id = end_station_id
+        self.end_station_id = str(int(float(end_station_id))) if end_station_id else ''
         self.end_station_name = end_station_name
         self.bike_id = bike_id
         self.user_type = user_type
 
 class Bike:
-    def __init__(self,id,trips,seconds,start_station,end_station) :
+    def __init__(self,id: str,trips: int,seconds: float,start_station: str,end_station: str) :
         self.id = id
         self.trips = trips
         self.seconds = seconds    
@@ -180,16 +181,89 @@ class Bike:
 
 
 class Station:
-    def __init__(self,id,name) :
+    def __init__(self,id: str,name: str, InTrips: int, OutTrips: int) :
         self.id = id
         self.name = name
+        self.InTrips = InTrips
+        self.OutTrips = OutTrips
 
-# Funciones para agregar informacion al catalogo
+# Funciones para reccorridos
+
+def binary_search(arr, low, high, x):
+    # Check base case
+    if high >= low:
+        mid = (high+low) // 2
+        # If element is present at the middle itself
+        if arr[mid] == x:
+            return mid
+        # If element is smaller than mid, then it can only
+        # be present in left subarray
+        elif arr[mid] > x:
+            return binary_search(arr, low, (mid-1), x)
+        # Else the element can only be present in right subarray
+        else:
+            return binary_search(arr, (mid+1), high, x)
+    else:
+        # Element is not present in the array
+        return -1
+ 
+
+
+def range_search(arr, l_bound, u_bound):
+    def get_low_position(l_bound, mid):
+        if l_bound > mid:
+            for i in range(l_bound,0):
+                pass
+        else:
+            get_low_position(l_bound, mid//2)
+
+    size = len(arr)
+    if(l_bound > u_bound):
+        l_bound, u_bound = u_bound, l_bound
+    if (u_bound < arr[0] or l_bound > arr[size-1]):
+        return False
+
 
 # Funciones para creacion de datos
 
 # Funciones de consulta
 
+def StationNeedsBikes(analyzer: Analyzer):
+    st = analyzer.stations
+    mostWantedKey = [0,0,0,0,0]
+    mostWantedValue = [0,0,0,0,0]
+    def putWanted(element):
+        for i,x in enumerate(mostWantedKey):
+            if(element.OutTrips > x):
+                for v in reversed(range(i,len(mostWantedKey))):
+                    mostWantedKey[v] = mostWantedKey[v-1]
+                    mostWantedValue[v] = mostWantedValue[v-1]
+                mostWantedKey[i] = element.OutTrips
+                mostWantedValue[i] = element
+                break
+
+    for id in st:
+        putWanted(st[id])
+    return mostWantedValue
+
+#mas visitada en un periso
+def superStation(analyzer: Analyzer,station_id, fyhI, fyhF):
+    tp = Analyzer.trips 
+    pass
+
+def shortestPath(analyzer:Analyzer , origin_station_name, destination_station_name):
+    start_station, end_station = None, None
+    for i in analyzer.stations.values():
+        if i.name ==  origin_station_name:
+            start_station = i
+        if i.name == destination_station_name:
+            end_station = i
+    if(start_station == None or end_station == None):
+        return None
+    djkgraph = djk.Dijkstra(analyzer.grafo,start_station.id)
+    # print(djkgraph)
+    path = djk.pathTo(djkgraph,end_station.id)
+    return path
 
 
 # Funciones de ordenamiento

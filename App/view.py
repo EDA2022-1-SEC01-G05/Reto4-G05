@@ -21,6 +21,7 @@
  """
 
 from ast import Pass
+from itertools import count
 from re import A
 import sys
 import config
@@ -56,19 +57,21 @@ def printMenu():
     print("*******************************************")
     print("Bienvenido")
     print("1- Inicializar Analizador")
-    print("2- Comprar bicicletas para las estaciones con más viajes")
-    print("3- Planear paseos turísticos por la ciudad")
-    print("4- Reconocer los comopnentes fuertemente conectados del sistema")
-    print("5- Planear una ruta rápida")
-    print("6- Reportar rutas en un rango de fechas para los usuarios anuales")
-    print("7- Planear el mantenimiento preventivo de bicicletas")
-    print("8- La estación más frecuentada por visitantes")
+    print("2-REQ 1: Comprar bicicletas para las estaciones con más viajes")
+    print("3-REQ 2: Planear paseos turísticos por la ciudad")
+    print("4-REQ 3: Reconocer los comopnentes fuertemente conectados del sistema")
+    print("5-REQ 4: Planear una ruta rápida")
+    print("6-REQ 5: Reportar rutas en un rango de fechas para los usuarios anuales")
+    print("7-REQ 6: Planear el mantenimiento preventivo de bicicletas")
+    print("8-REQ 7: La estación más frecuentada por visitantes")
     print("0- Salir")
     print("*******************************************")
 
 
 def optionTwo(cont):
-    pass
+    lst = controller.StationNeedsBikes(cont)
+    for e in lst:
+        print('[',e.id, e.name, e.InTrips,']')
 
 def optionThree(cont, nombre, dispo_usuario, minru, maxru):
     pass
@@ -78,7 +81,15 @@ def optionFour(cont):
 
 
 def optionFive(cont, nombreO, nombreD):
-    pass
+    path = controller.optionFive(cont, nombreO, nombreD)
+    if path is not None:
+        pathlen = stack.size(path)
+        print('El camino es de longitud: ' + str(pathlen))
+        while (not stack.isEmpty(path)):
+            stop = stack.pop(path)
+            print(stop)
+    else:
+        print('No hay camino')
 
 
 def optionSix(cont, fechaI, fechaF):
@@ -88,7 +99,7 @@ def optionSix(cont, fechaI, fechaF):
 def optionSeven(cont, bikeID):
     pass
 
-def optionEight(cont, fyhI, fyhF):
+def optionEight(cont,estacion, fyhI, fyhF):
     pass
 
 
@@ -120,8 +131,10 @@ def thread_cycle():
             optionFour(cont, initialStation)
 
         elif int(inputs) == 5:
-            pass
-
+            orgStation = input("Estación origen (Ej: Fort York  Blvd / Capreol Ct): ")
+            destStation = input("Estación destino (Ej: Yonge St / St Clair Ave): ")
+            optionFive(cont, orgStation, destStation)
+            
         elif int(inputs) == 6:
             destStation = input("Estación destino (Ej: 15151-10): ")
             optionSix(cont, destStation)
@@ -131,13 +144,12 @@ def thread_cycle():
             optionSeven(cont, destStation)
 
         elif int(inputs) == 8:
+            destStation = input("Estación destino (Ej: 15151-10): ")
+            destStation = input("Estación destino (Ej: 15151-10): ")
+            destStation = input("Estación destino (Ej: 15151-10): ")
+            destStation = input("Estación destino (Ej: 15151-10): ")
+
             optionEight(cont)
-
-        elif int(inputs) == 9:
-            pass
-
-        elif int(inputs) == 10:
-            pass
         else:
             break
     sys.exit(0)
