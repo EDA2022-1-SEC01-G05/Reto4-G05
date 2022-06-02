@@ -40,7 +40,7 @@ def init():
     return analyzer
 
 # Funciones para la carga de datos
-def loadServices(analyzer, servicesfile):
+def loadServices(analyzer: model.Analyzer, servicesfile):
     """
     Carga los datos de los archivos CSV en el modelo.
     Se crea un arco entre cada par de estaciones que
@@ -52,8 +52,8 @@ def loadServices(analyzer, servicesfile):
 
                                 
     for trip in input_file:
-        print(trip)
-        # model.addTrip(analyzer, trip)
+        analyzer.loadTrip(trip)
+    analyzer.order()
     return analyzer
 
 

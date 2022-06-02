@@ -25,8 +25,13 @@
  """
 
 
+from datetime import datetime
+from multiprocessing import set_forkserver_preload
 import random
 import time
+from xmlrpc.client import Boolean
+
+from pandas import set_eng_float_format
 import config as cf
 import math
 from DISClib.ADT import list as lt
@@ -46,7 +51,7 @@ los mismos.
 
 # Funciones utilizadas para comparar elementos dentro de una estructura de datos
 
-def compareHashMap(id, element):
+def compareGraph(id, element):
     key = me.getKey(element)
     if (id == key):
         return 0
@@ -91,57 +96,91 @@ def compareMapNumber(a1, a2):
 
 
 class Analyzer():
+    __graph_loded: bool =False
+    __ordered: bool =False
     grafo = gr.newGraph(datastructure='ADJ_LIST',
                                               directed=True,
                                               size=14000,
-                                              comparefunction=compareList)
-    bikes = mp.newMap(numelements=14000,
-                                    maptype='PROBING',
-                                    comparefunction=compareHashMap)
-    trips = om.newMap(omaptype='RBT',
-                                    comparefunction=comparTreeMap)
-    mst = om.newMap(omaptype='RBT',
-                                    comparefunction=comparTreeMap)
+                                              comparefunction=compareGraph)
+    #Map<id: Station>
+    stations = {}
+    #Map<id: Bike>
+    bikes = {}
+    #[{id: Trip}] ordered_by_date
+    trips = []
+    mst = om.newMap(omaptype='RBT',comparefunction=comparTreeMap)
+    @staticmethod
     def genId():
         MAX = 1200
         sum = random.randint(0,MAX)
         id = random.randint(0,MAX)
         return hex(id)[2:]+hex(int(time.time() * 1000))[2:]+hex(sum)[2:]
 
-    def loadTrip(rawTrip):
+    def loadTrip(self, rawTrip):
+        # creates array of Trips
         trip = Trip(rawTrip["Trip Id"],rawTrip["Trip  Duration"],rawTrip["Start Time"],rawTrip["End Time"],rawTrip["Start Station Id"],rawTrip["Start Station Name"],rawTrip["End Station Id"],rawTrip["End Station Name"],rawTrip["Bike Id"],rawTrip["User Type"])
-        bike = Bike(trip.bike_id,0,trip.start_station_id,trip.end_station_id )
-        pass
+        self.trips.append({ 'key': trip.start_time, 'value': trip})
 
+        # creates map: dict of Bikes
+        if(not(trip.bike_id in self.bikes)):
+            bike = Bike(trip.bike_id,1,trip.duration,trip.start_station_id,trip.end_station_id )
+            self.bikes[bike.id] = bike
+        else:
+            bike = self.bikes[trip.bike_id]
+            bike.trips += 1 
+            bike.seconds += trip.duration
+        # Creates Vertex (start and end)
+        if(not(gr.containsVertex(self.grafo,trip.start_station_id)) and not(trip.start_station_id in self.stations)):
+            start_station = Station(trip.start_station_id, trip.start_station_name)
+            self.stations[start_station.id] = start_station
+            gr.insertVertex(self.grafo,start_station.id)
+        else:
+            start_station = self.stations[trip.start_station_id]
+        if(not(gr.containsVertex(self.grafo,trip.end_station_id)) and not(trip.end_station_id in self.stations)):
+            end_station = Station(trip.end_station_id, trip.end_station_name)
+            self.stations[end_station.id] = end_station
+            gr.insertVertex(self.grafo,end_station.id)
+        else:
+            end_station = self.stations[trip.end_station_id]
+        #Creates edges
+        edge = gr.getEdge(self.grafo, start_station.id, end_station.id)
+        if(edge == None ):
+            #  TODO: Problema del promedio de los viajes
+            gr.addEdge(self.grafo,start_station.id, end_station.id, trip.duration)
+            edge = gr.getEdge(self.grafo, start_station.id, end_station.id)
 
+        # print("["+start_station.name+"]---"+str(edge.weight)+"---["+end_station.name+"]")
+    def order(self):
+        def get_date(element):
+            return element.get('key')
+        self.trips.sort(key=get_date)
+        self.__ordered = True 
+
+ 
 class Trip:
-    def _init_(self,id,duration,start_time,end_time,start_station_id,start_Station_name,end_station_id,end_station_name,bike_id,user_type) :
+    def __init__(self,id,duration,start_time,end_time,start_station_id,start_station_name,end_station_id,end_station_name,bike_id,user_type) :
         self.id = id
-        self.duration = duration
-        self.start_time = start_time
-        self.end_time = end_time
+        self.duration = int(duration)
+        self.start_time = datetime.strptime(start_time, '%m/%d/%Y %H:%M')
+        self.end_time = datetime.strptime(end_time, '%m/%d/%Y %H:%M')
         self.start_station_id = start_station_id
-        self.start_Station_name = start_Station_name
+        self.start_station_name = start_station_name
         self.end_station_id = end_station_id
         self.end_station_name = end_station_name
         self.bike_id = bike_id
         self.user_type = user_type
 
 class Bike:
-    def _init_(self,id,trips,hours,start_station,end_station) :
+    def __init__(self,id,trips,seconds,start_station,end_station) :
         self.id = id
         self.trips = trips
-        self.hours = hours    
+        self.seconds = seconds    
         self.start_station = start_station    
         self.end_station = end_station    
 
-class Routes:
-    def _init_(self,id,time) :
-        self.id = id
-        self.time = time
 
 class Station:
-    def _init_(self,id,name) :
+    def __init__(self,id,name) :
         self.id = id
         self.name = name
 

@@ -111,6 +111,7 @@ def thread_cycle():
             optionTwo(cont)
 
         elif int(inputs) == 3:
+
             optionThree(cont)
 
         elif int(inputs) == 4:
